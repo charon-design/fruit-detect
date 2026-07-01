@@ -42,24 +42,42 @@ export function waitForOpencv(): Promise<void> {
       resolve();
       return;
     }
+    // cv 对象还未定义，轮询等待
     if (typeof cv === 'undefined') {
-      reject(new Error('OpenCV.js 未加载'));
+      const poll = setInterval(() => {
+        if (typeof cv !== 'undefined') {
+          clearInterval(poll);
+          initListener();
+        }
+      }, 100);
+      setTimeout(() => {
+        clearInterval(poll);
+        if (!isOpencvReady()) {
+          reject(new Error('等待 OpenCV.js 加载超时'));
+        }
+      }, 30000);
       return;
     }
-    // cv 对象存在但还未初始化完成，监听 onRuntimeInitialized
-    const origInit = cv.onRuntimeInitialized;
-    cv.onRuntimeInitialized = () => {
-      if (origInit) origInit();
-      resolve();
-    };
-    // 超时保护
-    setTimeout(() => {
+    initListener();
+
+    function initListener() {
       if (isOpencvReady()) {
         resolve();
-      } else {
-        reject(new Error('等待 OpenCV.js 初始化超时'));
+        return;
       }
-    }, 30000);
+      const origInit = cv.onRuntimeInitialized;
+      cv.onRuntimeInitialized = () => {
+        if (origInit) origInit();
+        resolve();
+      };
+      setTimeout(() => {
+        if (isOpencvReady()) {
+          resolve();
+        } else {
+          reject(new Error('等待 OpenCV.js 初始化超时'));
+        }
+      }, 30000);
+    }
   });
 }
 
