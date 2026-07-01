@@ -1,5 +1,5 @@
 import { useDetectionStore } from "@/hooks/useDetectionStore";
-import type { StepImages } from "@/hooks/useDetectionStore";
+import type { StepImages } from "@/utils/opencvProcessor";
 
 const STEP_META: { key: keyof StepImages; label: string; desc: string }[] = [
   { key: "gray", label: "灰度图", desc: "RGB → 灰度" },
@@ -42,7 +42,7 @@ export default function StepGallery() {
             </div>
             <div className="p-2">
               <img
-                src={`data:image/png;base64,${result.steps[step.key]}`}
+                src={result.steps[step.key]}
                 alt={step.label}
                 className="w-full rounded-md object-contain max-h-44"
               />

@@ -32,7 +32,7 @@ export default function CompareView() {
         </div>
         <div className="p-4">
           <img
-            src={`data:image/png;base64,${result.result_marked}`}
+            src={result.result_marked}
             alt="检测结果"
             className="w-full rounded-lg object-contain max-h-80"
           />

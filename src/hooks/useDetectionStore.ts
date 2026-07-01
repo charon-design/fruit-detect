@@ -1,30 +1,6 @@
 import { create } from "zustand";
-
-export interface StepImages {
-  gray: string;
-  gaussian_blur: string;
-  median_blur: string;
-  hist_enhanced: string;
-  threshold: string;
-  morphology: string;
-}
-
-export interface Metrics {
-  disease_ratio: number;
-  quality_level: string;
-  quality_desc: string;
-  healthy_mean: number;
-  healthy_std: number;
-  freshness_level: string;
-  freshness_desc: string;
-  contour_count: number;
-}
-
-export interface DetectionResult {
-  steps: StepImages;
-  result_marked: string;
-  metrics: Metrics;
-}
+import { processImage, waitForOpencv } from "@/utils/opencvProcessor";
+import type { DetectionResult } from "@/utils/opencvProcessor";
 
 interface DetectionState {
   file: File | null;
@@ -63,25 +39,18 @@ export const useDetectionStore = create<DetectionState>((set, get) => ({
     set({ loading: true, error: null, result: null });
 
     try {
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const res = await fetch("/api/detect", {
-        method: "POST",
-        body: formData,
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("图片加载失败"));
       });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.error || `请求失败 (${res.status})`);
-      }
+      await waitForOpencv();
+      const result = processImage(img);
+      URL.revokeObjectURL(img.src);
 
-      const data = await res.json();
-      if (!data.success) {
-        throw new Error(data.error || "检测失败");
-      }
-
-      set({ result: data.data, loading: false });
+      set({ result, loading: false });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "未知错误";
       set({ error: message, loading: false });
