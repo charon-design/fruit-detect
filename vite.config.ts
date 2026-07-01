@@ -8,7 +8,7 @@ export default defineConfig({
   base: '/fruit-detect/',
   build: {
     sourcemap: 'hidden',
-    outDir: 'docs',
+    outDir: 'dist',
   },
   plugins: [
     react({
