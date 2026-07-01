@@ -5,13 +5,10 @@ import { traeBadgePlugin } from 'vite-plugin-trae-solo-badge';
 
 // https://vite.dev/config/
 export default defineConfig({
-  server: {
-    proxy: {
-      '/api': 'http://localhost:5000',
-    },
-  },
+  base: '/fruit-detect/',
   build: {
     sourcemap: 'hidden',
+    outDir: 'docs',
   },
   plugins: [
     react({
